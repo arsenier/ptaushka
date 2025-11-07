@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Config.h"
 
 #define ENC_LEFT_CLK_A_PIN 2
 #define ENC_LEFT_B_PIN 4
@@ -8,8 +9,8 @@
 #define ENC_RIGHT_CLK_A_PIN 3
 #define ENC_RIGHT_B_PIN 5
 
-#define ENC_LEFT_DIR 1   // {-1, 1}
-#define ENC_RIGHT_DIR -1 // {-1, 1}
+#define ENC_LEFT_DIR -1 // {-1, 1}
+#define ENC_RIGHT_DIR 1 // {-1, 1}
 
 #define ENC_TICK_TO_RAD (2 * M_PI / (48 * 30))
 
