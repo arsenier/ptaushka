@@ -22,3 +22,10 @@
 17
 16.5
 */
+
+// Movement parameters
+#define MAX_VEL 0.1     // [m/s]
+#define MAX_ANG_VEL 1.0 // [rad/s]
+
+// Maze parameters
+#define CELL_WIDTH 0.18 // [m]
