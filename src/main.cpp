@@ -28,6 +28,8 @@ void setup()
   argviz_registerScreen(0, volts);
   argviz_registerScreen(1, encoders);
   argviz_registerScreen(2, servos);
+  argviz_registerScreen(3, mixer);
+  argviz_registerScreen(4, asmr);
   argviz_start();
 }
 

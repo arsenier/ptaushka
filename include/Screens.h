@@ -4,6 +4,8 @@
 #include "Encoder.h"
 #include "VelEstimator.h"
 #include "VoltageSensor.h"
+#include "Odometer.h"
+#include "ASMR.h"
 
 int left_u = 0;
 int right_u = 0;
@@ -137,4 +139,19 @@ SCREEN(mixer,
                        default:
                            break;
                        } },
-                      "theta_i0: %s", String(theta_i0).c_str())})
+                      "theta_i0: %s", String(theta_i0).c_str())
+
+                ROW("odom_S: %s", String(odom_get_S()).c_str())
+                    ROW("odom_theta: %s", String(odom_get_theta()).c_str())})
+
+SCREEN(asmr,
+       {
+           size_t prog_counter = asmr_get_prog_counter();
+           ROW("prog_counter: %d", prog_counter);
+           ASMR_Entry *prog_buffer = asmr_get_prog_buffer();
+           for (size_t i = 0; i < 5; i++)
+           {
+               ROW("prog_buffer[%d]: %X", prog_counter + i, prog_buffer[prog_counter + i].raw);
+           }
+           //    ROW("prog_buffer[0]: %d", asmr_get_prog_buffer()[0]);
+       })

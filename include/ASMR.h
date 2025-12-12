@@ -66,7 +66,7 @@ enum ASMR_CYC : uint8_t
 };
 
 ASMR_Entry asmr_prog_buffer[ASMR_PROG_BUFFER_SIZE] = {
-    SWD05,
+    SWD1,
     // SS90SEL,
     // SWD1,
     // SS90SER,
@@ -108,7 +108,8 @@ void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     output->v_0 = MAX_VEL;
     output->theta_i0 = 0;
 
-    int dist_half_int = cyc.forw.forw_dist;
+    // uint8_t dist_half_int = cyc.forw.forw_dist;
+    uint8_t dist_half_int = cyc.raw & 0b00011111;
 
     float dist_mul = 1.0;
 
@@ -118,6 +119,15 @@ void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     }
 
     float dist = dist_half_int * 0.5 * CELL_WIDTH * dist_mul;
+
+    // Serial.print("cyc: ");
+    // Serial.print(cyc.raw, BIN);
+    // Serial.print(" dist_half_int: ");
+    // Serial.print(dist_half_int);
+    // Serial.print(" dist_mul: ");
+    // Serial.print(dist_mul);
+    // Serial.print(" dist: ");
+    // Serial.println(dist);
 
     output->is_completed = data.odom_S > dist;
 }
@@ -138,12 +148,14 @@ void asmr_tick()
         .time = micros(), // !!!
     };
 
-    CyclogramOutput output;
+    CyclogramOutput output = {0};
 
     ASMR_Entry current_cyc = asmr_prog_buffer[asmr_prog_counter];
 
     // RUN CYCLOGRAM
-    switch (current_cyc.cyc_type)
+    uint8_t cyc_type = current_cyc.raw >> 6;
+
+    switch (cyc_type)
     {
     case STIDLE:
         asmr_cyc_stidle(&output, data, current_cyc);
@@ -166,4 +178,14 @@ void asmr_tick()
 
     // Write motors
     mixer_tick(output.v_0, output.theta_i0);
+}
+
+size_t asmr_get_prog_counter()
+{
+    return asmr_prog_counter;
+}
+
+ASMR_Entry *asmr_get_prog_buffer()
+{
+    return asmr_prog_buffer;
 }
