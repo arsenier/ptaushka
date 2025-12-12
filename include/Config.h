@@ -29,3 +29,6 @@
 
 // Maze parameters
 #define CELL_WIDTH 0.18 // [m]
+
+// ASMR parameters
+#define ASMR_PROG_BUFFER_SIZE 64
