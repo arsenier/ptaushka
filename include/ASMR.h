@@ -58,23 +58,43 @@ enum ASMR_CYC : uint8_t
     STOP = 0b00000000,
     IDLE = 0b00000001,
 
+    SWD = 0b01000000,
     SWD05 = 0b01000001,
     SWD1 = 0b01000010,
 
     SS90SEL = 0b10010010,
     SS90SER = 0b10010011,
+
+    TURN_CYC = 0b10000000,
 };
+
+#define FROM_STRAIGHT 0
+#define FROM_DIAG 0b00001000
+
+#define SHORTEST 0
+#define EXPLORE 0b00010000
+#define IN_PLACE 0b00100000
+
+#define T45 0
+#define T90 0b00000010
+#define T135 0b00000100
+#define T180 0b00000110
+
+#define TURN_LEFT 0b00000000
+#define TURN_RIGHT 0b00000001
 
 ASMR_Entry asmr_prog_buffer[ASMR_PROG_BUFFER_SIZE] = {
     SWD1,
+    SWD + 4,
     // SS90SEL,
     // SWD1,
     // SS90SER,
     // SWD05,
+    TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
     STOP,
 };
 
-enum ASMR_CYC_Type
+enum ASMR_CYC_Type : uint8_t
 {
     STIDLE = 0b00,
     FORW = 0b01,
@@ -132,8 +152,69 @@ void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     output->is_completed = data.odom_S > dist;
 }
 
+/*
+1.0.x.x.x.x.x.x
+    ^^^ ^ ^^^ |- Направление поворота
+     |  |  |  |- 0: LEFT
+     |  |  |  `- 1: RIGHT
+     |  |  |
+     |  |  |- Угол поворота
+     |  |  |- 00: 45deg
+     |  |  |- 01: 90deg
+     |  |  |- 10: 135deg
+     |  |  `- 11: 180deg
+     |  |
+     |  |- Откуда приходим в поворот (из прямой или диагонали)
+     |  |- 0: STRAIGHT
+     |  `- 1: DIAG
+     |
+     |- Вид поворота 90
+     |- 00: Shortest
+     |- 01: Explore
+     `- 10: In-place
+*/
+
+const float turn_smooth_distances[][2] = {
+    [0] = {0, 0}, // 45deg
+    [1] = {CELL_WIDTH - TURN_RADIUS_SHORTEST,
+           CELL_WIDTH *M_SQRT1_2 - TURN_RADIUS_SHORTEST}, // 90deg
+    [2] = {0, 0},                                         // 135deg
+    [3] = {0, 0},                                         // 180deg
+};
+
 void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 {
+    uint8_t turn_type = cyc.raw & 0b00110000 >> 4;   // Тип поворота
+    uint8_t turn_source = cyc.raw & 0b00001000 >> 3; // Откуда приходим в поворот
+    uint8_t turn_angle = cyc.raw & 0b00000110 >> 1;  // Угол поворота
+    uint8_t turn_dir = cyc.raw & 0b00000001;         // Направление поворота (0 - лево, 1 - право)
+
+    uint8_t turn_dest = (~turn_angle & 0b1) ^ turn_source; // Куда приходим из поворота
+
+    float turn_delta_theta = (45 + 45 * turn_angle) * DEG_TO_RAD;
+
+    if (turn_type == 0)
+    {
+        float first_dist = turn_smooth_distances[turn_angle][turn_source];
+        float turn_dist = DEG_TO_RAD * TURN_RADIUS_SHORTEST;
+        float second_dist = turn_smooth_distances[turn_angle][turn_dest];
+
+        if (data.odom_S < first_dist)
+        {
+            asmr_cyc_forw(output, data, ASMR_Entry{FORW << 6 | turn_source << 5});
+        }
+        else if (data.odom_S < first_dist + turn_dist)
+        {
+            output->v_0 = MAX_VEL;
+            output->theta_i0 = turn_dir ? -MAX_ANG_VEL : MAX_ANG_VEL;
+        }
+        else if (data.odom_S < first_dist + turn_dist + second_dist)
+        {
+            asmr_cyc_forw(output, data, ASMR_Entry{FORW << 6 | turn_dest << 5});
+        }
+
+        output->is_completed = data.odom_S > first_dist + turn_dist + second_dist;
+    }
 }
 
 void asmr_tick()
