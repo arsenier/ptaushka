@@ -84,14 +84,15 @@ enum ASMR_CYC : uint8_t
 #define TURN_RIGHT 0b00000001
 
 ASMR_Entry asmr_prog_buffer[ASMR_PROG_BUFFER_SIZE] = {
+    // SWD + 10,
     // SWD1,
-    TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
+    TURN_CYC + SHORTEST + FROM_STRAIGHT + T45 + TURN_RIGHT,
     // SWD1,
-    TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
+    TURN_CYC + SHORTEST + FROM_DIAG + T135 + TURN_LEFT,
     // SWD1,
-    TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
+    // TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
     // SWD1,
-    TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
+    TURN_CYC + SHORTEST + FROM_STRAIGHT + T180 + TURN_LEFT,
     STOP,
 };
 
@@ -176,11 +177,12 @@ void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 */
 
 const float turn_smooth_distances[][2] = {
-    [0] = {0, 0}, // 45deg
+    //    {S, D}
+    [0] = {CELL_WIDTH / 2 - TURN_RADIUS_SHORTEST * tan(M_PI / 8), CELL_WIDTH *M_SQRT1_2 - TURN_RADIUS_SHORTEST *tan(M_PI / 8)}, // 45deg
     [1] = {CELL_WIDTH - TURN_RADIUS_SHORTEST,
-           CELL_WIDTH *M_SQRT1_2 - TURN_RADIUS_SHORTEST}, // 90deg
-    [2] = {0, 0},                                         // 135deg
-    [3] = {0, 0},                                         // 180deg
+           CELL_WIDTH *M_SQRT1_2 - TURN_RADIUS_SHORTEST},                                                                                       // 90deg
+    [2] = {3.0 / 2 * CELL_WIDTH - TURN_RADIUS_SHORTEST * tan(3.0 / 8 * M_PI), CELL_WIDTH *M_SQRT2 - TURN_RADIUS_SHORTEST *tan(3.0 / 8 * M_PI)}, // 135deg
+    [3] = {CELL_WIDTH / 2, 0},                                                                                                                  // 180deg
 };
 
 void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
@@ -193,22 +195,21 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     uint8_t turn_dest = (~turn_angle & 0b1) ^ turn_source; // Куда приходим из поворота
 
     float turn_delta_theta = (45 + 45 * turn_angle) * DEG_TO_RAD;
-
-    // Serial.print("cyc type: ");
-    // Serial.print(turn_type);
-    // Serial.print(" source: ");
-    // Serial.print(turn_source);
-    // Serial.print(" angle: ");
-    // Serial.print(turn_angle);
-    // Serial.print(" dir: ");
-    // Serial.print(turn_dir);
-    // Serial.print(" dest: ");
-    // Serial.println(turn_dest);
+    float turn_radius = 0;
 
     if (turn_type == 0)
     {
+        if (turn_angle == 3)
+        {
+            turn_radius = CELL_WIDTH / 2;
+        }
+        else
+        {
+            turn_radius = TURN_RADIUS_SHORTEST;
+        }
+
         float first_dist = turn_smooth_distances[turn_angle][turn_source];
-        float turn_dist = turn_delta_theta * TURN_RADIUS_SHORTEST;
+        float turn_dist = turn_delta_theta * turn_radius;
         float second_dist = turn_smooth_distances[turn_angle][turn_dest];
 
         if (data.odom_S < first_dist)
@@ -219,8 +220,8 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
         // else if (fabs(data.odom_theta) < turn_delta_theta)
         {
             output->v_0 = MAX_VEL;
-            float turn_vel = MAX_VEL / TURN_RADIUS_SHORTEST;
-            output->theta_i0 = turn_dir ? -MAX_ANG_VEL : MAX_ANG_VEL;
+            float turn_vel = MAX_VEL / turn_radius;
+            output->theta_i0 = turn_dir ? -turn_vel : turn_vel;
         }
         else if (data.odom_S < first_dist + turn_dist + second_dist)
         {
@@ -229,12 +230,6 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 
         output->is_completed = data.odom_S > first_dist + turn_dist + second_dist;
     }
-
-    // Serial.print("TURNING: ");
-    // Serial.print("output.v_0: ");
-    // Serial.print(output->v_0);
-    // Serial.print(" output.theta_i0: ");
-    // Serial.println(output->theta_i0);
 }
 
 void asmr_tick()
