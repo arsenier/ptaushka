@@ -24,7 +24,7 @@
 */
 
 // Movement parameters
-#define MAX_VEL 0.1     // [m/s]
+#define MAX_VEL 0.20    // [m/s]
 #define MAX_ANG_VEL 1.0 // [rad/s]
 
 #define TURN_RADIUS_SHORTEST 0.09 // [m]

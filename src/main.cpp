@@ -11,6 +11,7 @@
 #include "Screens.h"
 #include "Odometer.h"
 #include "ASMR.h"
+#include "DistSensors.h"
 
 void setup()
 {
@@ -21,6 +22,7 @@ void setup()
   enc_l_init();
   enc_r_init();
   asmr_init();
+  dist_init();
 
   interrupts();
 
@@ -28,7 +30,7 @@ void setup()
   argviz_registerScreen(0, volts);
   argviz_registerScreen(1, encoders);
   argviz_registerScreen(2, servos);
-  argviz_registerScreen(3, mixer);
+  argviz_registerScreen(0, mixer);
   argviz_registerScreen(4, asmr);
   argviz_start();
 }
@@ -43,6 +45,11 @@ void loop()
 
   // Sense
   // odom_tick();
+
+  // enc_l_tick();
+  // enc_r_tick();
+  // ve_l_tick(enc_l_get_phi());
+  // ve_r_tick(enc_r_get_phi());
 
   // Plan
 

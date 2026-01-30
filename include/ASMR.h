@@ -6,6 +6,8 @@
 #include "Config.h"
 #include "Odometer.h"
 #include "Mixer.h"
+#include "DistSensors.h"
+// #include "WallFollowing.h"
 
 struct ASMR_Entry
 {
@@ -44,6 +46,10 @@ struct SensorData
     float odom_S;
     float odom_theta;
     float time;
+    int dist_left;
+    int dist_right;
+    int dist_fleft;
+    int dist_fright;
 };
 
 struct CyclogramOutput
@@ -91,11 +97,11 @@ ASMR_Entry asmr_prog_buffer[ASMR_PROG_BUFFER_SIZE] = {
     // TURN_CYC + SHORTEST + FROM_DIAG + T135 + TURN_LEFT,
     // SWD1,
     // TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
-    // SWD1,
+    SWD1,
     // TURN_CYC + SHORTEST + FROM_STRAIGHT + T180 + TURN_LEFT,
 
-    TURN_CYC + EXPLORE + FROM_STRAIGHT + T90 + TURN_RIGHT,
-    TURN_CYC + IN_PLACE + FROM_STRAIGHT + T180 + TURN_LEFT,
+    // TURN_CYC + EXPLORE + FROM_STRAIGHT + T90 + TURN_RIGHT,
+    // TURN_CYC + IN_PLACE + FROM_STRAIGHT + T180 + TURN_LEFT,
     STOP,
 };
 
@@ -128,10 +134,12 @@ void asmr_cyc_stidle(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     }
 }
 
+float wf_straight_tick(SensorData data);
+
 void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 {
-    output->v_0 = MAX_VEL;
-    output->theta_i0 = 0;
+    output->v_0 = 0; // MAX_VEL;
+    output->theta_i0 = wf_straight_tick(data);
 
     // uint8_t dist_half_int = cyc.forw.forw_dist;
     uint8_t dist_half_int = cyc.raw & 0b00011111;
@@ -287,6 +295,10 @@ void asmr_tick()
         .odom_S = odom_get_S(),
         .odom_theta = odom_get_theta(),
         .time = micros(), // !!!
+        .dist_left = dist_get_left(),
+        .dist_right = dist_get_right(),
+        .dist_fleft = dist_get_fleft(),
+        .dist_fright = dist_get_fright(),
     };
 
     CyclogramOutput output = {0};

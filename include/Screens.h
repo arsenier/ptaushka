@@ -6,6 +6,8 @@
 #include "VoltageSensor.h"
 #include "Odometer.h"
 #include "ASMR.h"
+#include "DistSensors.h"
+#include "WallFollowing.h"
 
 int left_u = 0;
 int right_u = 0;
@@ -154,4 +156,33 @@ SCREEN(asmr,
                ROW("prog_buffer[%d]: %X", prog_counter + i, prog_buffer[prog_counter + i].raw);
            }
            //    ROW("prog_buffer[0]: %d", asmr_get_prog_buffer()[0]);
+       })
+
+SCREEN(dist,
+       {
+           ROW("dist_left: %d", dist_get_left());
+           ROW("dist_right: %d", dist_get_right());
+           ROW("dist_fleft: %d", dist_get_fleft());
+           ROW("dist_fright: %d", dist_get_fright());
+       })
+
+SCREEN(wf,
+       {
+           CLICK_ROW([](CLICK_STATE state)
+                     {
+                       switch (state)
+                       {
+                       case CLICK_LEFT:
+                           wf_kp /= 1.1;
+                           break;
+                       case CLICK_RIGHT:
+                           wf_kp *= 1.1;
+                           break;
+                       case CLICK_DOWN:
+                           wf_kp = 1;
+                           break;
+                       default:
+                           break;
+                       } },
+                     "wf_kp: %s", String(wf_kp).c_str());
        })
