@@ -4,6 +4,7 @@
 
 float wf_kp_left = 0.6;
 float wf_kp_right = -wf_kp_left;
+float wf_kp_angle = 12;
 
 // 6 = k*10 => k = 6/10
 
@@ -14,9 +15,11 @@ float wf_straight_tick(SensorData data)
 
     float err_left = WF_LEFT_REFERENCE - left;
     float err_right = WF_RIGHT_REFERENCE - right;
+    float err_angle = 0 - data.odom_theta;
 
     float theta_i0_left = err_left * wf_kp_left;
     float theta_i0_right = err_right * wf_kp_right;
+    float theta_i0_angle = err_angle * wf_kp_angle;
 
     float theta_i0 = 0;
     size_t counter = 0;
@@ -31,6 +34,9 @@ float wf_straight_tick(SensorData data)
         theta_i0 += theta_i0_right;
         counter++;
     }
+
+    theta_i0 += theta_i0_angle;
+    counter++;
 
     if (counter != 0)
     {

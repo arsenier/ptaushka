@@ -268,4 +268,106 @@ float wf_straight_tick(SensorData data)
 }
 ```
 
+## Добавление управления по углу
+
+```diff
+// WallFollowing.h
+
+float wf_straight_tick(SensorData data)
+{
+    float left = data.dist_left;
+    float right = data.dist_right;
+
+    float err_left = WF_LEFT_REFERENCE - left;
+    float err_right = WF_RIGHT_REFERENCE - right;
++   float err_angle = 0 - data.odom_theta;
+
+    float theta_i0_left = err_left * wf_kp_left;
+    float theta_i0_right = err_right * wf_kp_right;
++   float theta_i0_angle = err_angle * wf_kp_angle;
+
+    float theta_i0 = 0;
+    size_t counter = 0;
+
+    if (data.is_wall_left)
+    {
+        theta_i0 += theta_i0_left;
+        counter++;
+    }
+    if (data.is_wall_right)
+    {
+        theta_i0 += theta_i0_right;
+        counter++;
+    }
++
++   theta_i0 += theta_i0_angle;
++   counter++;
+
+    if (counter != 0)
+    {
+        theta_i0 /= counter;
+    }
+
+    return theta_i0;
+}
+```
+
+## Исправление циклограммы поворота
+
+```diff
+// ASMR.h
+
+void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
+{
+    ...
+
+    else if (data.odom_S < first_dist + turn_dist + second_dist)
+    {
++       data.odom_theta -= turn_dir ? -turn_delta_theta : turn_delta_theta;
+        asmr_cyc_forw(output, data, ASMR_Entry{(FORW << 6) | (turn_dest << 5)});
+    }
+
+    output->is_completed = data.odom_S > first_dist + turn_dist + second_dist;
+}
+```
+
+## Исправление диагональных проездов
+
+```diff
+// ASMR.h
+
+void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
+{
+    output->v_0 = MAX_VEL;
+-   output->theta_i0 = wf_straight_tick(data);
+
+    // uint8_t dist_half_int = cyc.forw.forw_dist;
+    uint8_t dist_half_int = cyc.raw & 0b00011111;
+
+    float dist_mul = 1.0;
+
+-   if (cyc.forw.forw_mode == 1) // Diagonal
++   if (cyc.raw & 0b00100000) // Diagonal
+    {
+        dist_mul = M_SQRT2;
++       output->theta_i0 = 0;
+    }
++   else // Straight
++   {
++       output->theta_i0 = wf_straight_tick(data);
++   }
+
+    float dist = dist_half_int * 0.5 * CELL_WIDTH * dist_mul;
+
+    // Serial.print("cyc: ");
+    // Serial.print(cyc.raw, BIN);
+    // Serial.print(" dist_half_int: ");
+    // Serial.print(dist_half_int);
+    // Serial.print(" dist_mul: ");
+    // Serial.print(dist_mul);
+    // Serial.print(" dist: ");
+    // Serial.println(dist);
+
+    output->is_completed = data.odom_S > dist;
+}
 

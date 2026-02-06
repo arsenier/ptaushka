@@ -142,17 +142,22 @@ float wf_straight_tick(SensorData data);
 
 void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 {
-    output->v_0 = 0; // MAX_VEL;
-    output->theta_i0 = wf_straight_tick(data);
+    output->v_0 = MAX_VEL;
 
     // uint8_t dist_half_int = cyc.forw.forw_dist;
     uint8_t dist_half_int = cyc.raw & 0b00011111;
 
     float dist_mul = 1.0;
 
-    if (cyc.forw.forw_mode == 1)
+    // if (cyc.forw.forw_mode == 1) // Diagonal
+    if (cyc.raw & 0b00100000) // Diagonal
     {
         dist_mul = M_SQRT2;
+        output->theta_i0 = 0;
+    }
+    else // Straight
+    {
+        output->theta_i0 = wf_straight_tick(data);
     }
 
     float dist = dist_half_int * 0.5 * CELL_WIDTH * dist_mul;
@@ -283,6 +288,7 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     }
     else if (data.odom_S < first_dist + turn_dist + second_dist)
     {
+        data.odom_theta -= turn_dir ? -turn_delta_theta : turn_delta_theta;
         asmr_cyc_forw(output, data, ASMR_Entry{(FORW << 6) | (turn_dest << 5)});
     }
 
