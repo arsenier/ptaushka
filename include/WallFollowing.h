@@ -2,22 +2,40 @@
 
 #include "ASMR.h"
 
-#define WF_LEFT_REFERENCE 50
-#define WF_RIGHT_REFERENCE 50
-#define WF_LEFT_THRESHOLD 20
-#define WF_RIGHT_THRESHOLD 20
-
-float wf_kp = 0.6;
+float wf_kp_left = 0.6;
+float wf_kp_right = -wf_kp_left;
 
 // 6 = k*10 => k = 6/10
 
 float wf_straight_tick(SensorData data)
 {
     float left = data.dist_left;
+    float right = data.dist_right;
 
-    float err = WF_LEFT_REFERENCE - left;
+    float err_left = WF_LEFT_REFERENCE - left;
+    float err_right = WF_RIGHT_REFERENCE - right;
 
-    float theta_i0 = err * wf_kp;
+    float theta_i0_left = err_left * wf_kp_left;
+    float theta_i0_right = err_right * wf_kp_right;
+
+    float theta_i0 = 0;
+    size_t counter = 0;
+
+    if (data.is_wall_left)
+    {
+        theta_i0 += theta_i0_left;
+        counter++;
+    }
+    if (data.is_wall_right)
+    {
+        theta_i0 += theta_i0_right;
+        counter++;
+    }
+
+    if (counter != 0)
+    {
+        theta_i0 /= counter;
+    }
 
     return theta_i0;
 }

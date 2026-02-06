@@ -50,6 +50,10 @@ struct SensorData
     int dist_right;
     int dist_fleft;
     int dist_fright;
+    bool is_wall_left;
+    bool is_wall_right;
+    bool is_wall_fleft;
+    bool is_wall_fright;
 };
 
 struct CyclogramOutput
@@ -300,6 +304,11 @@ void asmr_tick()
         .dist_fleft = dist_get_fleft(),
         .dist_fright = dist_get_fright(),
     };
+
+    data.is_wall_left = data.dist_left > WF_LEFT_THRESHOLD;
+    data.is_wall_right = data.dist_right > WF_RIGHT_THRESHOLD;
+    data.is_wall_fleft = false;
+    data.is_wall_fright = false;
 
     CyclogramOutput output = {0};
 

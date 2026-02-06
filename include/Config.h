@@ -35,3 +35,9 @@
 
 // ASMR parameters
 #define ASMR_PROG_BUFFER_SIZE 64
+
+// Wall parameters
+#define WF_LEFT_REFERENCE 50
+#define WF_RIGHT_REFERENCE 50
+#define WF_LEFT_THRESHOLD 20
+#define WF_RIGHT_THRESHOLD 20
