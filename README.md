@@ -370,4 +370,36 @@ void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 
     output->is_completed = data.odom_S > dist;
 }
+```
 
+## Исправление бага в поисковых поворотах
+
+```diff
+// ASMR.h
+
+void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
+{
+    ...
+
+    else if (turn_type == 1) // EXPLORE
+    {
+        turn_radius = TURN_RADIUS_EXPLORE;
+
+        if (turn_angle != 1)
+        {
+            Serial.println("EXPLORE turn_angle != 90");
+            return;
+        }
+
+        first_dist = CELL_WIDTH / 2 - turn_radius;
+-       turn_dist = M_PI_4 * turn_radius;
++       turn_dist = M_PI_2 * turn_radius;
+        second_dist = first_dist;
+
+        turn_vel_f = MAX_VEL;
+        float turn_vel = MAX_VEL / turn_radius;
+        turn_vel_w = turn_dir ? -turn_vel : turn_vel;
+    }
+    ...
+}
+```

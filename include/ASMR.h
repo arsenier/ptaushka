@@ -254,7 +254,7 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
         }
 
         first_dist = CELL_WIDTH / 2 - turn_radius;
-        turn_dist = M_PI_4 * turn_radius;
+        turn_dist = M_PI_2 * turn_radius;
         second_dist = first_dist;
 
         turn_vel_f = MAX_VEL;
