@@ -13,6 +13,9 @@
 #include "ASMR.h"
 #include "DistSensors.h"
 
+#include "Maze.h"
+#include "MazeDrawer.h"
+
 void setup()
 {
   Serial.begin(115200);
@@ -23,6 +26,7 @@ void setup()
   enc_r_init();
   asmr_init();
   dist_init();
+  maze_init();
 
   interrupts();
 
@@ -32,7 +36,26 @@ void setup()
   argviz_registerScreen(2, servos);
   argviz_registerScreen(0, mixer);
   argviz_registerScreen(4, asmr);
-  argviz_start();
+  // argviz_start();
+
+  maze_set_wall(Vec2{0, 0}, Maze::CellWalls{Maze::WALL, Maze::WALL, Maze::OPEN, Maze::OPEN});
+  maze_set_wall(Vec2{1, 1}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::WALL});
+  maze_set_wall(Vec2{0, 2}, Maze::CellWalls{Maze::OPEN, Maze::OPEN, Maze::OPEN, Maze::WALL});
+  maze_set_wall(Vec2{1, 3}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::WALL});
+  maze_set_wall(Vec2{2, 2}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::WALL});
+  maze_set_wall(Vec2{3, 1}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::WALL, Maze::OPEN});
+  maze_set_wall(Vec2{2, 0}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::OPEN});
+  maze_set_wall(Vec2{4, 0}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::OPEN});
+  maze_set_wall(Vec2{5, 1}, Maze::CellWalls{Maze::WALL, Maze::OPEN, Maze::OPEN, Maze::WALL});
+  maze_set_wall(Vec2{5, 3}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::WALL});
+  maze_set_wall(Vec2{3, 3}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::OPEN});
+  maze_set_wall(Vec2{4, 2}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::WALL});
+
+  Serial.println();
+  drawMaze(maze, MAZE_WIDTH, MAZE_HEIGHT);
+
+  while (1)
+    ;
 }
 
 void loop()

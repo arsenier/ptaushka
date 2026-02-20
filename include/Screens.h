@@ -173,16 +173,16 @@ SCREEN(wf,
                        switch (state)
                        {
                        case CLICK_LEFT:
-                           wf_kp /= 1.1;
+                           wf_kp_left /= 1.1;
                            break;
                        case CLICK_RIGHT:
-                           wf_kp *= 1.1;
+                           wf_kp_left *= 1.1;
                            break;
                        case CLICK_DOWN:
-                           wf_kp = 1;
+                           wf_kp_left = 1;
                            break;
                        default:
                            break;
                        } },
-                     "wf_kp: %s", String(wf_kp).c_str());
+                     "wf_kp: %s", String(wf_kp_left).c_str());
        })

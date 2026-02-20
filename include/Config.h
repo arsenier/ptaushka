@@ -41,3 +41,7 @@
 #define WF_RIGHT_REFERENCE 50
 #define WF_LEFT_THRESHOLD 20
 #define WF_RIGHT_THRESHOLD 20
+
+// Maze parameters
+#define MAZE_WIDTH 6
+#define MAZE_HEIGHT 4
