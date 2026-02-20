@@ -52,7 +52,12 @@ void setup()
   maze_set_wall(Vec2{4, 2}, Maze::CellWalls{Maze::OPEN, Maze::WALL, Maze::OPEN, Maze::WALL});
 
   Serial.println();
-  drawMaze(maze, MAZE_WIDTH, MAZE_HEIGHT);
+  draw_maze(MAZE_WIDTH, MAZE_HEIGHT);
+
+  solver_init();
+  solver_solve(Vec2{0, 2}, Vec2{5, 3});
+
+  draw_maze_with_solver(MAZE_WIDTH, MAZE_HEIGHT);
 
   while (1)
     ;
