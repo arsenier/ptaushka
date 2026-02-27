@@ -54,8 +54,25 @@ void setup()
   Serial.println();
   draw_maze(MAZE_WIDTH, MAZE_HEIGHT);
 
+  uint32_t time0 = micros();
   solver_init();
-  solver_solve(Vec2{0, 2}, Vec2{5, 3});
+  solver_set_start_goal(Vec2{0, 0}, Vec2{10, 10});
+  uint32_t time1 = micros();
+
+  Serial.print("Solver init: ");
+  Serial.print(time1 - time0);
+  Serial.println(" us");
+
+  bool solved = false;
+  do
+  {
+    uint32_t time0s = micros();
+    solved = solver_solve();
+    uint32_t time1s = micros();
+    Serial.print("Solver solve: ");
+    Serial.print(time1s - time0s);
+    Serial.println(" us");
+  } while (!solved);
 
   draw_maze_with_solver(MAZE_WIDTH, MAZE_HEIGHT);
 
