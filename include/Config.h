@@ -48,3 +48,8 @@
 
 // Solver parameters
 #define MAX_SOLVE_TIME 500 // [us]
+
+// Navigator parameters
+#define NAV_X_START 1
+#define NAV_Y_START 1
+#define NAV_SIGMA_START 0 // Стартуем вправо
