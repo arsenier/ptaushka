@@ -295,6 +295,88 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
     output->is_completed = data.odom_S > first_dist + turn_dist + second_dist;
 }
 
+void asmr_nav_update(ASMR_Entry cyc)
+{
+    uint8_t cyc_type = cyc.raw >> 6;
+
+    switch (cyc_type)
+    {
+    case STIDLE:
+        nav_tick(0, 0, 0);
+        break;
+    case FORW:
+    {
+        uint8_t dx = cyc.raw & 0b00011111;
+        nav_tick(dx, 0, 0);
+        break;
+    }
+    case TURN:
+    {
+        uint8_t delta_angle = (cyc.raw & 0b00000110) >> 1;
+        uint8_t turn_dir = cyc.raw & 0b00000001;
+
+        int8_t dsigma = (delta_angle + 1) * (turn_dir ? -1 : 1);
+
+        int dx = 0;
+        int dy = 0;
+
+        switch ((cyc.raw & 0b00110000) >> 4)
+        {
+        case 0b00: // Shortest
+            switch (delta_angle)
+            {
+            case 0: // 45deg
+                dx = 2;
+                dy = -1;
+                break;
+            case 1: // 90deg
+                if (cyc.raw & 0b00001000)
+                {
+                    dx = 1;
+                    dy = -1;
+                }
+                else
+                {
+                    dx = 2;
+                    dy = -2;
+                }
+                break;
+            case 2: // 135deg
+                dx = 1;
+                dy = -2;
+                break;
+            case 3: // 180deg
+                dx = 0;
+                dy = -2;
+                break;
+
+            default:
+                break;
+            }
+            break;
+        case 0b01: // Explore
+            dx = 1;
+            dy = -1;
+            break;
+        case 0b10: // In-place
+            dx = 0;
+            dy = 0;
+            break;
+        }
+
+        if (turn_dir)
+        {
+            dy = -dy;
+        }
+
+        nav_tick(dx, dy, dsigma);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 void asmr_tick()
 {
     // Read sensors
@@ -342,6 +424,7 @@ void asmr_tick()
     {
         asmr_prog_counter++;
         odom_reset();
+        asmr_nav_update(current_cyc);
     }
 
     // Write motors

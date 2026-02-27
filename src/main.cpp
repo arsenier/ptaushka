@@ -29,6 +29,7 @@ void setup()
   asmr_init();
   dist_init();
   maze_init();
+  nav_init();
 
   interrupts();
 
