@@ -413,3 +413,56 @@ void asmr_cyc_turn(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 ## Отслеживание координат робота
 
 
+# Построение маршута
+
+```
++---+---+---+---+---+---+
+│ E   S   E   E   E   S │
++---+   +---+---+---+   +
+│ S   W │ E   E   S │ S │
++   +---+   +---+   +   +
+│ S │ S   W │ S   W │ S │
++   +   +---+   +---+   +
+│ S   W │ S   E   S   W │
++ . +---+ . +---+ . +---+
+│ S . S . S . S . S . S │
++ . + . + . + . + . + . +
+│ E . E . E . E . E . G │
++---+---+---+---+---+---+
+
+ESWSSSSEEEEEG
+
+
+ESWSSSSEEEEEG
+FRRLFFFLFFFFS
+SWD0.5 <- Start
+SS90ER
+SS90ER
+SS90EL
+SWD3
+SS90EL
+SWD4
+SWD0.5 <- Finish
+
+EEEEESSSSSG
+FFFFFRFFFFS
+SWD0.5 <- Start
+SWD4
+SS90ER
+SWD4
+SWD0.5 <- Finish
+
+        N
+        |
+        2
+     3     1
+W - 4       0 - E
+     5     7
+        6
+        |
+        S
+
+
+ESWSSSSEEEEEG
+FRRLFFFLFFFFS
+```

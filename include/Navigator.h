@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Config.h"
+#include "Maze.h"
 
 int nav_x;
 int nav_y;
@@ -39,4 +40,26 @@ void nav_tick(int dx, int dy, int dsigma)
     nav_x += x_g;
     nav_y += y_g;
     nav_sigma += dsigma;
+}
+
+Vec2 nav_get_pos()
+{
+    Vec2 pos;
+
+    if (nav_x % 2 == 1 && nav_y % 2 == 1)
+    {
+        pos.x = (nav_x - 1) / 2;
+        pos.y = (nav_y - 1) / 2;
+    }
+    else
+    {
+        nav_tick(1, 0, 0);
+
+        pos.x = (nav_x - 1) / 2;
+        pos.y = (nav_y - 1) / 2;
+
+        nav_tick(-1, 0, 0);
+    }
+
+    return pos;
 }

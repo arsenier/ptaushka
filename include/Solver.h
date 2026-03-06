@@ -146,6 +146,6 @@ bool solver_solve()
 
 char solver_get_where_from(Vec2 coord)
 {
-    char symbs[] = {'X', 'L', 'D', 'U', 'R', 'G'};
+    char symbs[] = {'X', 'W', 'S', 'N', 'E', 'G'};
     return symbs[(int)solver_where_from_storage[coord.x][coord.y]];
 }

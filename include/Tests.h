@@ -5,6 +5,7 @@
 #include "MazeDrawer.h"
 #include "Solver.h"
 #include "Navigator.h"
+#include "Router.h"
 
 void test_maze()
 {
@@ -26,7 +27,7 @@ void test_maze()
 
     uint32_t time0 = micros();
     solver_init();
-    solver_set_start_goal(Vec2{0, 0}, Vec2{10, 10});
+    solver_set_start_goal(Vec2{0, 0}, Vec2{5, 5});
     uint32_t time1 = micros();
 
     Serial.print("Solver init: ");
@@ -45,9 +46,6 @@ void test_maze()
     } while (!solved);
 
     draw_maze_with_solver(MAZE_WIDTH, MAZE_HEIGHT);
-
-    while (1)
-        ;
 }
 
 void test_nav_print_coords()
@@ -76,4 +74,18 @@ void test_navigator()
     test_nav_print_coords();
     nav_tick(2, -2, 2);
     test_nav_print_coords();
+}
+
+void test_router()
+{
+    test_maze();
+
+    nav_init();
+
+    router_init();
+
+    router_tick();
+
+    Serial.println("Router path:");
+    Serial.println(router_path_buffer);
 }

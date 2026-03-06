@@ -42,7 +42,8 @@ void setup()
   // argviz_start();
 
   // test_maze();
-  test_navigator();
+  // test_navigator();
+  test_router();
 }
 
 void loop()
