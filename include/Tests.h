@@ -88,4 +88,18 @@ void test_router()
 
     Serial.println("Router path:");
     Serial.println(router_path_buffer);
+
+    router_path_to_cyc(router_path_buffer);
+    Serial.println("Router cyc:");
+    for (size_t i = 0; i < router_cyc_index; i++)
+    {
+        Serial.print(router_cyc_buffer[i].raw, BIN);
+        Serial.println("");
+    }
+    Serial.println();
+
+    for (size_t i = 0; i < router_cyc_index; i++)
+    {
+        asmr_prog_buffer[i] = router_cyc_buffer[i];
+    }
 }

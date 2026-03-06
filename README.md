@@ -442,7 +442,8 @@ SS90EL
 SWD3
 SS90EL
 SWD4
-SWD0.5 <- Finish
+SWD0.5
+STOP <- Finish
 
 EEEEESSSSSG
 FFFFFRFFFFS
@@ -450,7 +451,8 @@ SWD0.5 <- Start
 SWD4
 SS90ER
 SWD4
-SWD0.5 <- Finish
+SWD0.5
+STOP <- Finish
 
         N
         |
