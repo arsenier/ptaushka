@@ -67,6 +67,7 @@ WhereFrom solver_where_from_storage[MAZE_WIDTH][MAZE_HEIGHT] = {WhereFrom::UNKNO
 
 Vec2 solver_start;
 Vec2 solver_goal;
+bool solver_is_active = false;
 
 void solver_init()
 {
@@ -78,6 +79,8 @@ void solver_init()
             solver_where_from_storage[x][y] = WhereFrom::UNKNOWN;
         }
     }
+
+    solver_is_active = false;
 }
 
 void solver_set_start_goal(Vec2 start, Vec2 goal)
@@ -87,10 +90,17 @@ void solver_set_start_goal(Vec2 start, Vec2 goal)
 
     solver_queue.push_back(goal);
     solver_where_from_storage[goal.x][goal.y] = WhereFrom::GOAL;
+
+    solver_is_active = true;
 }
 
 bool solver_solve()
 {
+    if (!solver_is_active)
+    {
+        return false;
+    }
+
     uint32_t time0 = micros();
     while (!solver_queue.isEmpty() && micros() - time0 < MAX_SOLVE_TIME)
     {
@@ -103,7 +113,7 @@ bool solver_solve()
 
         Maze::CellWalls current_walls = maze_get_walls(current);
 
-        if (current_walls.left != Maze::WALL)
+        if (current_walls.west != Maze::WALL)
         {
             Vec2 new_sosed = Vec2{current.x - 1, current.y};
             if (solver_where_from_storage[new_sosed.x][new_sosed.y] == WhereFrom::UNKNOWN)
@@ -112,7 +122,7 @@ bool solver_solve()
                 solver_queue.push_back(new_sosed);
             }
         }
-        if (current_walls.down != Maze::WALL)
+        if (current_walls.south != Maze::WALL)
         {
             Vec2 new_sosed = Vec2{current.x, current.y + 1};
             if (solver_where_from_storage[new_sosed.x][new_sosed.y] == WhereFrom::UNKNOWN)
@@ -121,7 +131,7 @@ bool solver_solve()
                 solver_queue.push_back(new_sosed);
             }
         }
-        if (current_walls.up != Maze::WALL)
+        if (current_walls.north != Maze::WALL)
         {
             Vec2 new_sosed = Vec2{current.x, current.y - 1};
             if (solver_where_from_storage[new_sosed.x][new_sosed.y] == WhereFrom::UNKNOWN)
@@ -130,7 +140,7 @@ bool solver_solve()
                 solver_queue.push_back(new_sosed);
             }
         }
-        if (current_walls.right != Maze::WALL)
+        if (current_walls.east != Maze::WALL)
         {
             Vec2 new_sosed = Vec2{current.x + 1, current.y};
             if (solver_where_from_storage[new_sosed.x][new_sosed.y] == WhereFrom::UNKNOWN)

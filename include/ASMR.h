@@ -7,77 +7,11 @@
 #include "Odometer.h"
 #include "Mixer.h"
 #include "DistSensors.h"
-// #include "WallFollowing.h"
+#include "WallFollowing.h"
 #include "Navigator.h"
-
-struct ASMR_Entry
-{
-    union
-    {
-        uint8_t raw;
-
-        uint8_t cyc_type : 2;
-
-        struct
-        {
-            uint8_t cyc_type : 2;
-            uint8_t stidle_mode : 6;
-        } stidle;
-
-        struct
-        {
-            uint8_t cyc_type : 2;
-            uint8_t forw_mode : 1;
-            uint8_t forw_dist : 5;
-        } forw;
-
-        struct
-        {
-            uint8_t cyc_type : 2;
-            uint8_t turn_mode : 2;
-            uint8_t turn_source : 1;
-            uint8_t turn_angle : 2;
-            uint8_t turn_dir : 1;
-        } turn;
-    };
-};
-
-struct SensorData
-{
-    float odom_S;
-    float odom_theta;
-    float time;
-    int dist_left;
-    int dist_right;
-    int dist_fleft;
-    int dist_fright;
-    bool is_wall_left;
-    bool is_wall_right;
-    bool is_wall_fleft;
-    bool is_wall_fright;
-};
-
-struct CyclogramOutput
-{
-    float theta_i0;
-    float v_0;
-    bool is_completed;
-};
-
-enum ASMR_CYC : uint8_t
-{
-    STOP = 0b00000000,
-    IDLE = 0b00000001,
-
-    SWD = 0b01000000,
-    SWD05 = 0b01000001,
-    SWD1 = 0b01000010,
-
-    SS90SEL = 0b10010010,
-    SS90SER = 0b10010011,
-
-    TURN_CYC = 0b10000000,
-};
+#include "Types.h"
+#include "WallExplorer.h"
+#include "MazeDrawer.h"
 
 #define FROM_STRAIGHT 0
 #define FROM_DIAG 0b00001000
@@ -102,11 +36,13 @@ ASMR_Entry asmr_prog_buffer[ASMR_PROG_BUFFER_SIZE] = {
     // TURN_CYC + SHORTEST + FROM_DIAG + T135 + TURN_LEFT,
     // SWD1,
     // TURN_CYC + SHORTEST + FROM_STRAIGHT + T90 + TURN_LEFT,
+    SWD05,
     SWD1,
     // TURN_CYC + SHORTEST + FROM_STRAIGHT + T180 + TURN_LEFT,
 
     // TURN_CYC + EXPLORE + FROM_STRAIGHT + T90 + TURN_RIGHT,
     // TURN_CYC + IN_PLACE + FROM_STRAIGHT + T180 + TURN_LEFT,
+    IDLE,
     STOP,
 };
 
@@ -138,8 +74,6 @@ void asmr_cyc_stidle(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
         output->is_completed = true;
     }
 }
-
-float wf_straight_tick(SensorData data);
 
 void asmr_cyc_forw(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
 {
@@ -396,8 +330,8 @@ void asmr_tick()
 
     data.is_wall_left = data.dist_left > WF_LEFT_THRESHOLD;
     data.is_wall_right = data.dist_right > WF_RIGHT_THRESHOLD;
-    data.is_wall_fleft = false;
-    data.is_wall_fright = false;
+    data.is_wall_fleft = data.dist_fleft > WF_FLEFT_THRESHOLD;
+    data.is_wall_fright = data.dist_fright > WF_FRIGHT_THRESHOLD;
 
     CyclogramOutput output = {0};
 
@@ -426,6 +360,31 @@ void asmr_tick()
         asmr_prog_counter++;
         odom_reset();
         asmr_nav_update(current_cyc);
+        wall_explorer_update(data);
+        solver_init();
+        solver_set_start_goal(nav_get_pos(), Vec2{GOAL_X, GOAL_Y});
+    }
+
+    bool is_solved = solver_solve();
+
+    if (is_solved)
+    {
+        router_init();
+        router_tick();
+        router_path_to_cyc(router_path_buffer);
+
+        asmr_prog_buffer[0] = router_cyc_buffer[0];
+        asmr_prog_counter = 0;
+
+        // solver_init();
+
+        output.v_0 = 0;
+        output.theta_i0 = 0;
+    }
+
+    if (current_cyc.raw == IDLE)
+    {
+        draw_maze(MAZE_WIDTH, MAZE_HEIGHT);
     }
 
     // Write motors

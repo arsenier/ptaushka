@@ -43,7 +43,7 @@ void setup()
 
   // test_maze();
   // test_navigator();
-  test_router();
+  // test_router();
 }
 
 void loop()

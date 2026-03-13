@@ -4,7 +4,7 @@
 #include "Config.h"
 #include "Solver.h"
 #include "Navigator.h"
-#include "ASMR.h"
+#include "Types.h"
 
 #define ROUTER_PATH_BUFFER_SIZE 256
 
