@@ -12,6 +12,7 @@
 #include "Types.h"
 #include "WallExplorer.h"
 #include "MazeDrawer.h"
+#include "Router.h"
 
 #define FROM_STRAIGHT 0
 #define FROM_DIAG 0b00001000
@@ -58,6 +59,11 @@ size_t asmr_prog_counter = 0;
 void asmr_init()
 {
     asmr_prog_counter = 0;
+
+    asmr_prog_buffer[0] = ASMR_Entry{SWD05};
+    asmr_prog_buffer[1] = ASMR_Entry{SWD1};
+    asmr_prog_buffer[2] = ASMR_Entry{IDLE};
+    asmr_prog_buffer[3] = ASMR_Entry{STOP};
 }
 
 void asmr_cyc_stidle(CyclogramOutput *output, SensorData data, ASMR_Entry cyc)
@@ -394,6 +400,11 @@ void asmr_tick()
     // Serial.print(output.v_0);
     // Serial.print(" output.theta_i0: ");
     // Serial.println(output.theta_i0);
+}
+
+bool asmr_is_finished()
+{
+    return asmr_prog_buffer[asmr_prog_counter].raw == STOP;
 }
 
 size_t asmr_get_prog_counter()

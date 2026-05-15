@@ -44,28 +44,65 @@ void setup()
   // test_maze();
   // test_navigator();
   // test_router();
+
+  while (true)
+  {
+    // Timer
+    static uint32_t timer = micros();
+    while (micros() - timer < Ts_us)
+      ;
+    timer = micros();
+
+    asmr_tick();
+
+    if (asmr_is_finished())
+    {
+      break;
+    }
+  }
+
+  nav_init();
+  asmr_init();
+  m_drive(0, 0);
+  delay(5000);
+
+  while (true)
+  {
+    // Timer
+    static uint32_t timer = micros();
+    while (micros() - timer < Ts_us)
+      ;
+    timer = micros();
+
+    asmr_tick();
+
+    if (asmr_is_finished())
+    {
+      break;
+    }
+  }
 }
 
 void loop()
 {
-  // Timer
-  static uint32_t timer = micros();
-  while (micros() - timer < Ts_us)
-    ;
-  timer = micros();
+  // // Timer
+  // static uint32_t timer = micros();
+  // while (micros() - timer < Ts_us)
+  //   ;
+  // timer = micros();
 
-  // Sense
-  // odom_tick();
+  // // Sense
+  // // odom_tick();
 
-  // enc_l_tick();
-  // enc_r_tick();
-  // ve_l_tick(enc_l_get_phi());
-  // ve_r_tick(enc_r_get_phi());
+  // // enc_l_tick();
+  // // enc_r_tick();
+  // // ve_l_tick(enc_l_get_phi());
+  // // ve_r_tick(enc_r_get_phi());
 
-  // Plan
+  // // Plan
 
-  // Act
-  // servo_tick(left_w0, right_w0);
-  // mixer_tick(v_0, theta_i0);
-  asmr_tick();
+  // // Act
+  // // servo_tick(left_w0, right_w0);
+  // // mixer_tick(v_0, theta_i0);
+  // asmr_tick();
 }
